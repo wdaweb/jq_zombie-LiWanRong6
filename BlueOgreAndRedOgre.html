@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400&display=swap" rel="stylesheet">
+  <style>
+    #game {
+      width: 1000px;
+      height: 600px;
+      background: black;
+      overflow: hidden;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      cursor: url('./images/hammer.gif') 50 50, auto;
+    }
+
+    .text-red {
+      color: #ef5757;
+    }
+
+    .text-blue {
+      color: #578aef;
+    }
+
+    h1 {
+      margin: 0;
+      margin-top: 15%;
+      color: whitesmoke;
+      text-align: center;
+    }
+
+    #twoOgre {
+      margin-top: 3%;
+    }
+
+    @keyframes jump {
+      0% {
+        margin-top: 0;
+      }
+
+      50% {
+        margin-top: 8%;
+      }
+
+      100% {
+        margin-top: 0;
+      }
+    }
+
+
+    #blueOgre {
+      position: relative;
+      left: 25%;
+      animation-name: jump;
+      animation-duration: 1.2s;
+      animation-iteration-count: infinite;
+    }
+
+    #redOgre {
+      position: relative;
+      right: 25%;
+      animation-name: jump;
+      animation-duration: 1s;
+      animation-iteration-count: infinite;
+    }
+
+    #title {
+      font-family: 'Press Start 2P', cursive;
+    }
+
+    #btn-start {
+      position: relative;
+      top: 40%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      font-family: 'Press Start 2P', cursive;
+      font-size: 1.5rem;
+      background: transparent;
+      color: white;
+      background: linear-gradient(to right, #ef5757, #578aef);
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 0;
+    }
+
+    #btn-start:hover {
+      background: linear-gradient(to left, #ef5757, #578aef);
+    }
+
+    #game img {
+      height: 150px;
+      position: absolute;
+      user-select: none;
+      /* 無法拖曳 */
+      -webkit-user-drag: none;
+      -webkit-user-select: none;
+    }
+
+    #bar {
+      width: 1000px;
+      background-color: black;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+    }
+
+    #bar p {
+      display: inline-block;
+      color: white;
+      font-size: 1.2rem;
+      padding: 0 10px;
+      font-family: 'Press Start 2P', cursive;
+    }
+
+    #bar p:last-child {
+      float: right;
+    }
+
+    .blood {
+      /* 忽略點擊事件 */
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="bar">
+    <p>Score:<span id="text-score">0</span></p>
+    <p>Time:<span id="text-time">0</span>s</p>
+    <p>HighScore:<span id="highscore">0</span></p>
+  </div>
+  <br>
+  <div id="game">
+
+    <h1 id="title">
+      <span class="text-blue">Blue</span> ogre
+      &
+      <span class="text-red">Red</span> ogre
+    </h1>
+    <div id="twoOgre">
+      <img src="./images/青鬼.png" id="blueOgre">
+      <img src="./images/赤鬼.png" id="redOgre">
+    </div>
+    <input type="button" value="start" id="btn-start">
+  </div>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <!--sweetalert網站 https://sweetalert2.github.io/ -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    let score = 0, countdown = 10, timer = 0
+    if (window.localStorage.highscore != undefined || window.localStorage.highscore != null) {
+      $('#highscore').text(window.localStorage.highscore)
+    }
+    else {
+      window.localStorage.setItem('highscore', '0')
+    }
+
+    function move(ogre) {
+      const top = Math.round(Math.random() * 70) + '%'
+      const left = Math.round(Math.random() * 70) + '%'
+      ogre.stop().animate({ top, left }, 2000, function () {
+        move(ogre)
+      })
+
+    }
+
+    $('#btn-start').click(function () {
+      $(this).attr('disabled', true)
+      $(this).hide()
+      $('#title').hide()
+      $('#redOgre').hide()
+      $('#blueOgre').hide()
+      score = 0
+      $('#text-score').text(score)
+      countdown = 30
+      $('#text-time').text(countdown)
+      $('#game').css('background', 'url("./images/highskies.jpg") center')
+
+      //開始
+      timer = setInterval(function () {
+        countdown--
+        $('#text-time').text(countdown)
+        const random = Math.round(Math.random() * 9)
+        if (random > 5 && $('#game .ogre').length < 5) {
+          const top = Math.round(Math.random() * 70) + '%'
+          const left = Math.round(Math.random() * 70) + '%'
+          const ogre = $(`<img src="./images/鬼.png" class="ogre" style="top:${top};left:${left}">`)
+          $('#game').append(ogre)
+          move(ogre)
+        }
+
+        if (countdown <= 0) {
+          clearInterval(timer)
+          $('#game img').remove()
+          $('#btn-start').show()
+          $('#title').show()
+          $('#game').css('background', 'black')
+          $('#btn-start').attr('disabled', false)
+          Swal.fire({
+            title: '遊戲結束',
+            text: `時間到，你得到${score}分`,
+            icon: 'info'
+          })
+
+          if (score > window.localStorage.highscore) {
+            window.localStorage.highscore = score
+            $('#highscore').text(window.localStorage.highscore)
+          }
+        }
+      }, 1000)
+    })
+
+    $('#game').on('click', '.ogre', function () {
+      $(this).attr('src', 'blood.png')
+      $(this).removeClass('ogre').addClass('blood')
+      $(this).stop()
+      score++
+      $('#text-score').text(score)
+    })
+  </script>
+</body>
+
+</html>
